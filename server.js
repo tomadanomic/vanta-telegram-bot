@@ -376,13 +376,31 @@ app.post('/telegram', async (req, res) => {
 
     if (callback_query) {
       const { id: queryId, from: { id: userId }, data, message: { chat: { id: chatId } } } = callback_query;
-      const state = userState.get(userId);
+      let state = userState.get(userId);
+      
+      // Initialize state if it doesn't exist
+      if (!state) {
+        state = {
+          step: 'shopping',
+          cart: [],
+          deliveryDate: null,
+          cashConfirmed: false
+        };
+        userState.set(userId, state);
+      }
 
       if (data === 'back_to_products') {
         const cartText = state?.cart?.length > 0 
           ? `🛒 *Your Cart* (${state.cart.length} items) - AED ${state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}\n\nSelect another product or checkout:`
           : 'Select a product to add to your cart:';
         await sendMessage(chatId, cartText, getProductKeyboard());
+      } else if (data === 'help') {
+        const helpText = `❓ *Questions About Our Products?*\n\nWe're here to help! Our team is ready to answer any questions about:\n• Product benefits & usage\n• Dosing & instructions\n• Delivery options\n• Payment details\n\nJust reply here with your question and a member of our team will get back to you shortly! 💬`;
+        await sendMessage(chatId, helpText, {
+          inline_keyboard: [
+            [{ text: '⬅️ Back to Products', callback_data: 'back_to_products' }]
+          ]
+        });
       } else if (data.startsWith('product_')) {
         const productId = parseInt(data.split('_')[1]);
         await handleProductSelected(chatId, userId, productId);
