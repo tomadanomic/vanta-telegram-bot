@@ -369,7 +369,9 @@ app.post('/telegram', async (req, res) => {
         if (state?.step === 'address') {
           await handleAddressMessage(chatId, userId, text);
         } else {
-          await sendMessage(chatId, 'Please use the buttons to navigate. 🎯');
+          // Allow text messages for customer support questions
+          await logConversation(chatId, userId, 'CUSTOMER_QUESTION', text);
+          await sendMessage(chatId, '✅ Got your question! Our team will reply shortly. In the meantime, feel free to continue shopping or use the buttons above. 💬');
         }
       }
     }
