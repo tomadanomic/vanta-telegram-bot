@@ -231,26 +231,33 @@ app.get('/health', (req, res) => {
 // Webhook endpoint for Telegram
 app.post('/telegram', async (req, res) => {
   try {
-    const msg = req.body;
+    const update = req.body;
+    console.log('Received update:', JSON.stringify(update).substring(0, 200));
 
-    if (msg.message) {
-      const { message } = msg;
+    if (update.message) {
+      const message = update.message;
+      const chatId = message.chat.id;
+      const userId = message.from.id;
+      const firstName = message.from.first_name || 'there';
       
-      if (message.text === '/start') {
-        await handleStart(message.chat.id, message.from.id, message.from.first_name);
-      } else {
+      console.log(`Message from ${userId}: ${message.text}`);
+      
+      if (message.text && message.text.startsWith('/start')) {
+        await handleStart(chatId, userId, firstName);
+      } else if (message.text) {
         await handleMessage(message);
       }
     }
 
-    if (msg.callback_query) {
-      await handleCallbackQuery(msg.callback_query);
+    if (update.callback_query) {
+      console.log(`Callback from ${update.callback_query.from.id}: ${update.callback_query.data}`);
+      await handleCallbackQuery(update.callback_query);
     }
 
-    res.sendStatus(200);
+    res.json({ ok: true });
   } catch (error) {
     console.error('Telegram webhook error:', error);
-    res.sendStatus(500);
+    res.json({ ok: false, error: error.message });
   }
 });
 
