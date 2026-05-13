@@ -187,6 +187,14 @@ async function handleMessage(msg) {
   if (!state || state.step !== 'address') return;
 
   try {
+    console.log('Attempting to insert order:', {
+      telegram_user_id: userId,
+      chat_id: chatId,
+      product_name: state.selectedProduct.name,
+      quantity: state.quantity,
+      address: text
+    });
+
     // Insert order to Supabase
     const { data, error } = await supabase
       .from('orders')
@@ -201,7 +209,13 @@ async function handleMessage(msg) {
       }])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      await sendMessage(chatId, `❌ Order error: ${error.message}`);
+      return;
+    }
+
+    console.log('Order inserted successfully:', data);
 
     const orderId = data[0]?.id || `VANTA-${Date.now()}`;
     
@@ -227,7 +241,7 @@ Confirm?
     userState.set(userId, { step: 'confirm', orderId });
 
   } catch (error) {
-    console.error('Order error:', error);
+    console.error('Order exception:', error);
     await sendMessage(chatId, `❌ Error: ${error.message}`);
   }
 }
