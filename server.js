@@ -20,20 +20,75 @@ app.use(express.json());
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
-// Product catalog
+// ==================== PRODUCT CATALOG WITH DESCRIPTIONS ====================
+
 const PRODUCTS = [
-  { id: 1, name: 'Retatrutide Pen 30mg', price: 1500, emoji: '⭐' },
-  { id: 2, name: 'NAD+ 500mg', price: 800, emoji: '🔋' },
-  { id: 3, name: 'Tesamorelin 5mg', price: 300, emoji: '💪' },
-  { id: 4, name: 'Melanotan 2 10mg', price: 300, emoji: '☀️' },
-  { id: 5, name: 'HCG 5000IU', price: 400, emoji: '🧑‍🔬' },
-  { id: 6, name: 'MOTSC 5mg', price: 175, emoji: '⚡' },
-  { id: 7, name: 'BPC157 5mg', price: 150, emoji: '🔬' },
-  { id: 8, name: 'TB500 5mg', price: 100, emoji: '🏃' },
-  { id: 9, name: 'GHKCU 50mg', price: 250, emoji: '🧬' }
+  {
+    id: 1,
+    name: 'Retatrutide Pen 30mg',
+    price: 1500,
+    emoji: '⭐',
+    description: 'Advanced GLP-1/GCG/CGA receptor agonist. Powerful for fat loss and metabolic optimization.'
+  },
+  {
+    id: 2,
+    name: 'NAD+ 500mg',
+    price: 800,
+    emoji: '🔋',
+    description: 'Cellular energy booster. Supports mitochondrial function, anti-aging, and mental clarity.'
+  },
+  {
+    id: 3,
+    name: 'Tesamorelin 5mg',
+    price: 300,
+    emoji: '💪',
+    description: 'GHRH analog for muscle growth and fat loss. Enhances growth hormone naturally.'
+  },
+  {
+    id: 4,
+    name: 'Melanotan 2 10mg',
+    price: 300,
+    emoji: '☀️',
+    description: 'Natural-looking tan without sun damage. Supports libido and mood enhancement.'
+  },
+  {
+    id: 5,
+    name: 'HCG 5000IU',
+    price: 400,
+    emoji: '🧑‍🔬',
+    description: 'Hormone support for fertility and PCT. Maintains testicular function and muscle mass.'
+  },
+  {
+    id: 6,
+    name: 'MOTSC 5mg',
+    price: 175,
+    emoji: '⚡',
+    description: 'Peptide for metabolic support and energy. Fast-acting for performance optimization.'
+  },
+  {
+    id: 7,
+    name: 'BPC157 5mg',
+    price: 150,
+    emoji: '🔬',
+    description: 'Healing and recovery peptide. Supports joint, gut, and tissue regeneration.'
+  },
+  {
+    id: 8,
+    name: 'TB500 5mg',
+    price: 100,
+    emoji: '🏃',
+    description: 'Collagen and actin regulator. Accelerates recovery and improves flexibility.'
+  },
+  {
+    id: 9,
+    name: 'GHKCU 50mg',
+    price: 250,
+    emoji: '🧬',
+    description: 'Collagen booster and skin/joint support. Anti-aging and regeneration powerhouse.'
+  }
 ];
 
-// User state tracker
+// User state tracker - now includes cart
 const userState = new Map();
 
 // ==================== TELEGRAM API HELPERS ====================
@@ -50,7 +105,7 @@ async function sendMessage(chatId, text, keyboard = null) {
     const response = await axios.post(`${TELEGRAM_API}/sendMessage`, payload);
     return response.data;
   } catch (error) {
-    console.error('sendMessage error:', error.response?.data || error.message);
+    console.error('Error sending message:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -68,256 +123,321 @@ async function editMessage(chatId, messageId, text, keyboard = null) {
     const response = await axios.post(`${TELEGRAM_API}/editMessageText`, payload);
     return response.data;
   } catch (error) {
-    console.error('editMessage error:', error.response?.data || error.message);
-    throw error;
+    console.error('Error editing message:', error.response?.data || error.message);
   }
 }
 
-async function answerCallback(callbackId, text = null) {
-  try {
-    const payload = { callback_query_id: callbackId };
-    if (text) {
-      payload.text = text;
-      payload.show_alert = false;
-    }
-    const response = await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, payload);
-    return response.data;
-  } catch (error) {
-    console.error('answerCallback error:', error.response?.data || error.message);
-  }
-}
+// ==================== BOT FLOW ====================
 
-// ==================== BOT HANDLERS ====================
+async function handleStart(chatId, userId, firstName) {
+  // Initialize user state with empty cart
+  userState.set(userId, {
+    step: 'shopping',
+    cart: [],
+    deliveryDate: null,
+    cashConfirmed: false
+  });
 
-async function handleStart(chatId, userId) {
-  userState.set(userId, { step: 'menu' });
   await logConversation(chatId, userId, 'START', '/start');
 
-  const text = `👋 Welcome to VANTA Peptides!\n\nWe offer research-grade peptides, independently assayed.\n\nPick a product to order:`;
-  
+  const welcomeText = `👋 Welcome to *VANTA Peptides*!\n\nI'm here to help you find the perfect products for your goals. Let's start shopping! 💪\n\n_Click a product below to add it to your cart._`;
+
+  await sendMessage(chatId, welcomeText, getProductKeyboard());
+}
+
+function getProductKeyboard() {
   const keyboard = {
-    inline_keyboard: PRODUCTS.map((p) => [
-      { text: `${p.emoji} ${p.name}`, callback_data: `product_${p.id}` }
+    inline_keyboard: PRODUCTS.map(p => [
+      {
+        text: `${p.emoji} ${p.name} (AED ${p.price})`,
+        callback_data: `product_${p.id}`
+      }
+    ]).concat([
+      [{ text: '✅ Checkout', callback_data: 'checkout' }],
+      [{ text: '❓ Questions?', callback_data: 'help' }]
     ])
   };
-
-  await sendMessage(chatId, text, keyboard);
+  return keyboard;
 }
 
-async function handleCallback(callbackQuery) {
-  const { id: callbackId, from: { id: userId }, message: { chat: { id: chatId }, message_id: messageId }, data } = callbackQuery;
-
-  try {
-    if (data.startsWith('product_')) {
-      const productId = parseInt(data.split('_')[1]);
-      const product = PRODUCTS.find(p => p.id === productId);
-      
-      if (!product) {
-        await answerCallback(callbackId, 'Product not found');
-        return;
-      }
-
-      userState.set(userId, { step: 'quantity', selectedProduct: product });
-
-      const text = `${product.emoji} *${product.name}*\n\nHow many units?`;
-      const keyboard = {
-        inline_keyboard: [
-          [{ text: '1', callback_data: `qty_1_${productId}` }],
-          [{ text: '2', callback_data: `qty_2_${productId}` }],
-          [{ text: '3', callback_data: `qty_3_${productId}` }],
-          [{ text: '5', callback_data: `qty_5_${productId}` }],
-          [{ text: '10', callback_data: `qty_10_${productId}` }],
-          [{ text: '🔙 Back', callback_data: 'menu' }]
-        ]
-      };
-
-      await editMessage(chatId, messageId, text, keyboard);
-      await logConversation(chatId, userId, 'PRODUCT_SELECTED', product.name);
-      await answerCallback(callbackId);
-
-    } else if (data.startsWith('qty_')) {
-      const [_, qty, productId] = data.split('_');
-      const product = PRODUCTS.find(p => p.id === parseInt(productId));
-      const state = userState.get(userId);
-
-      if (state) {
-        state.step = 'address';
-        state.quantity = parseInt(qty);
-      }
-
-      const text = `✅ *${qty}x ${product.emoji} ${product.name}*\n\nShare your delivery address:`;
-      await editMessage(chatId, messageId, text);
-      await logConversation(chatId, userId, 'QUANTITY_SELECTED', `${qty}x ${product.name}`);
-      await answerCallback(callbackId);
-
-    } else if (data === 'menu') {
-      userState.set(userId, { step: 'menu' });
-
-      const text = `👋 Back to menu.\n\nPick a product:`;
-      const keyboard = {
-        inline_keyboard: PRODUCTS.map((p) => [
-          { text: `${p.emoji} ${p.name}`, callback_data: `product_${p.id}` }
-        ])
-      };
-
-      await editMessage(chatId, messageId, text, keyboard);
-      await logConversation(chatId, userId, 'RETURNED_TO_MENU', 'Menu');
-      await answerCallback(callbackId);
-
-    } else if (data.startsWith('confirm_')) {
-      const orderId = data.split('_')[1];
-      await logConversation(chatId, userId, 'ORDER_CONFIRMED', orderId);
-      
-      const text = `✅ *Order confirmed!* Reference: \`${orderId}\`\n\n💰 Cash on Delivery.\nMatt will contact you shortly.\n\nThank you for choosing VANTA! 🧬`;
-      await sendMessage(chatId, text);
-      await answerCallback(callbackId);
-    }
-  } catch (error) {
-    console.error('Callback error:', error);
-    await answerCallback(callbackId, 'Error processing request');
-  }
-}
-
-async function handleMessage(msg) {
-  const { chat: { id: chatId }, from: { id: userId }, text } = msg;
-
-  if (!text || text.startsWith('/')) return;
+async function handleProductSelected(chatId, userId, productId) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
 
   const state = userState.get(userId);
+  const infoText = `*${product.emoji} ${product.name}*\n\n${product.description}\n\n*Price: AED ${product.price}*\n\nℹ️ Learn more about this product?`;
+
+  await sendMessage(chatId, infoText, {
+    inline_keyboard: [
+      [
+        { text: '📚 Learn More', callback_data: `info_${productId}` },
+        { text: '➕ Add to Cart', callback_data: `add_to_cart_${productId}` }
+      ],
+      [{ text: '⬅️ Back to Products', callback_data: 'back_to_products' }]
+    ]
+  });
+
+  await logConversation(chatId, userId, 'PRODUCT_SELECTED', product.name);
+}
+
+async function handleAddToCart(chatId, userId, productId) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+
+  const state = userState.get(userId);
+  
+  // Ask for quantity
+  const qtyText = `How many *${product.name}* would you like?`;
+  await sendMessage(chatId, qtyText, {
+    inline_keyboard: [
+      [
+        { text: '1', callback_data: `qty_${productId}_1` },
+        { text: '2', callback_data: `qty_${productId}_2` },
+        { text: '3', callback_data: `qty_${productId}_3` }
+      ],
+      [
+        { text: '4', callback_data: `qty_${productId}_4` },
+        { text: '5', callback_data: `qty_${productId}_5` },
+        { text: 'Other', callback_data: `qty_${productId}_other` }
+      ],
+      [{ text: '⬅️ Back', callback_data: 'back_to_products' }]
+    ]
+  });
+}
+
+async function handleQuantitySelected(chatId, userId, productId, quantity) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+
+  const state = userState.get(userId);
+  
+  // Add to cart
+  state.cart.push({
+    productId,
+    name: product.name,
+    price: product.price,
+    quantity: parseInt(quantity)
+  });
+
+  const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartSummary = state.cart.map(item => `${item.quantity}x ${item.name} - AED ${item.price * item.quantity}`).join('\n');
+
+  const cartText = `✅ Added to cart!\n\n*Your Cart:*\n${cartSummary}\n\n*Subtotal: AED ${subtotal}*\n\nWhat would you like to do?`;
+
+  await sendMessage(chatId, cartText, {
+    inline_keyboard: [
+      [{ text: '🛒 Continue Shopping', callback_data: 'back_to_products' }],
+      [{ text: '✅ Proceed to Checkout', callback_data: 'checkout' }],
+      [{ text: '🗑️ Clear Cart', callback_data: 'clear_cart' }]
+    ]
+  });
+
+  await logConversation(chatId, userId, 'ITEM_ADDED', `${quantity}x ${product.name}`);
+}
+
+async function handleCheckout(chatId, userId) {
+  const state = userState.get(userId);
+
+  if (state.cart.length === 0) {
+    await sendMessage(chatId, 'Your cart is empty! Let\'s add some products. 🛍️', getProductKeyboard());
+    return;
+  }
+
+  state.step = 'delivery_date';
+  
+  const deliveryText = `📅 *When do you need delivery?*\n\nSelect your preferred delivery window:`;
+  
+  await sendMessage(chatId, deliveryText, {
+    inline_keyboard: [
+      [{ text: '⚡ ASAP (Today/Tomorrow)', callback_data: 'delivery_asap' }],
+      [{ text: '📅 This Week', callback_data: 'delivery_week' }],
+      [{ text: '🗓️ Next Week', callback_data: 'delivery_next_week' }],
+      [{ text: '📝 Specific Date', callback_data: 'delivery_custom' }]
+    ]
+  });
+}
+
+async function handleDeliveryDate(chatId, userId, dateOption) {
+  const state = userState.get(userId);
+  const dateMap = {
+    'asap': 'ASAP (Today/Tomorrow)',
+    'week': 'This Week',
+    'next_week': 'Next Week'
+  };
+
+  state.deliveryDate = dateMap[dateOption] || dateOption;
+  
+  await proceedToConfirmation(chatId, userId);
+}
+
+async function proceedToConfirmation(chatId, userId) {
+  const state = userState.get(userId);
+  state.step = 'confirm_order';
+
+  const cartSummary = state.cart.map(item => `${item.quantity}x ${item.name} - AED ${item.price * item.quantity}`).join('\n');
+  const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  const confirmText = `*📦 Order Summary*\n\n${cartSummary}\n\n*Subtotal: AED ${subtotal}*\n_Delivery: ${state.deliveryDate}_\n\n💰 *Payment:* Cash on Delivery\n\n✅ Do you confirm you'll have cash ready for delivery?`;
+
+  await sendMessage(chatId, confirmText, {
+    inline_keyboard: [
+      [
+        { text: '✅ Yes, I Confirm', callback_data: 'confirm_yes' },
+        { text: '❌ No, Go Back', callback_data: 'confirm_no' }
+      ]
+    ]
+  });
+
+  await logConversation(chatId, userId, 'CHECKOUT_STARTED', `Total: AED ${subtotal}`);
+}
+
+async function handleConfirmOrder(chatId, userId) {
+  const state = userState.get(userId);
+  state.step = 'address';
+  state.cashConfirmed = true;
+
+  await sendMessage(chatId, '📍 *Where should we deliver?*\n\nPlease provide your full delivery address:');
+  
+  await logConversation(chatId, userId, 'CASH_CONFIRMED', 'Customer confirmed cash ready');
+}
+
+async function handleAddressMessage(chatId, userId, address) {
+  const state = userState.get(userId);
+
   if (!state || state.step !== 'address') return;
 
+  state.address = address;
+
   try {
-    console.log('Attempting to insert order:', {
+    const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const { data, error } = await supabase.from('orders').insert({
       telegram_user_id: userId,
       chat_id: chatId,
-      product_name: state.selectedProduct.name,
-      quantity: state.quantity,
-      address: text
+      product_name: state.cart.map(item => `${item.quantity}x ${item.name}`).join(', '),
+      quantity: state.cart.reduce((sum, item) => sum + item.quantity, 0),
+      address: address,
+      delivery_date: state.deliveryDate,
+      total_amount: subtotal,
+      status: 'pending'
     });
 
-    // Insert order to Supabase
-    const { data, error } = await supabase
-      .from('orders')
-      .insert([{
-        telegram_user_id: userId,
-        chat_id: chatId,
-        product_name: state.selectedProduct.name,
-        quantity: state.quantity,
-        address: text,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      }])
-      .select();
+    if (error) throw error;
 
-    if (error) {
-      console.error('Supabase insert error:', error);
-      await sendMessage(chatId, `❌ Order error: ${error.message}`);
-      return;
-    }
+    const orderRef = data?.[0]?.id || 'REF-' + Date.now();
+    const successText = `✅ *Order Confirmed!*\n\n🎉 Your order has been placed successfully.\n\n*Order Reference:* \`${orderRef.slice(0, 8).toUpperCase()}\`\n\n📦 We'll deliver to:\n_${address}_\n\n⏰ Delivery: ${state.deliveryDate}\n💰 Amount Due: AED ${subtotal}\n\n❓ Have any questions? Just reply here and our team will get back to you shortly! 💬`;
 
-    console.log('Order inserted successfully:', data);
+    await sendMessage(chatId, successText);
+    await logConversation(chatId, userId, 'ORDER_PLACED', `Order Ref: ${orderRef.slice(0, 8)}, Amount: AED ${subtotal}`);
 
-    const orderId = data[0]?.id || `VANTA-${Date.now()}`;
-    
-    const confirmText = `
-📦 *Order Summary*
-├─ Product: ${state.selectedProduct.emoji} ${state.selectedProduct.name}
-├─ Qty: ${state.quantity}x
-├─ Address: \`${text}\`
-└─ Payment: 💰 Cash on Delivery
-
-Confirm?
-    `;
-
-    const keyboard = {
-      inline_keyboard: [
-        [{ text: '✅ Confirm', callback_data: `confirm_${orderId}` }],
-        [{ text: '❌ Cancel', callback_data: 'menu' }]
-      ]
-    };
-
-    await sendMessage(chatId, confirmText, keyboard);
-    await logConversation(chatId, userId, 'ADDRESS_CAPTURED', text);
-    userState.set(userId, { step: 'confirm', orderId });
-
+    state.step = 'completed';
+    state.cart = [];
   } catch (error) {
-    console.error('Order exception:', error);
-    await sendMessage(chatId, `❌ Error: ${error.message}`);
+    console.error('Error saving order:', error.message);
+    await sendMessage(chatId, '❌ Error saving order: ' + error.message);
   }
 }
 
 async function logConversation(chatId, userId, eventType, eventData) {
   try {
-    await supabase.from('conversations').insert([{
+    await supabase.from('conversations').insert({
       telegram_user_id: userId,
       chat_id: chatId,
       event_type: eventType,
-      event_data: eventData,
-      created_at: new Date().toISOString()
-    }]);
-  } catch (err) {
-    console.error('Log error:', err);
+      event_data: eventData
+    });
+  } catch (error) {
+    console.error('Error logging conversation:', error.message);
   }
 }
 
-// ==================== EXPRESS ROUTES ====================
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// ==================== WEBHOOK ====================
 
 app.post('/telegram', async (req, res) => {
-  try {
-    const { message, callback_query } = req.body;
+  const { message, callback_query } = req.body;
 
+  try {
     if (message) {
-      if (message.text?.startsWith('/start')) {
-        await handleStart(message.chat.id, message.from.id);
-      } else {
-        await handleMessage(message);
+      const { chat: { id: chatId }, from: { id: userId, first_name: firstName }, text } = message;
+
+      if (text === '/start') {
+        await handleStart(chatId, userId, firstName);
+      } else if (text && text.startsWith('/')) {
+        await sendMessage(chatId, 'I didn\'t understand that command. Type /start to begin! 🚀');
+      } else if (text) {
+        const state = userState.get(userId);
+        if (state?.step === 'address') {
+          await handleAddressMessage(chatId, userId, text);
+        } else {
+          await sendMessage(chatId, 'Please use the buttons to navigate. 🎯');
+        }
       }
     }
 
     if (callback_query) {
-      await handleCallback(callback_query);
+      const { id: queryId, from: { id: userId }, data, message: { chat: { id: chatId } } } = callback_query;
+      const state = userState.get(userId);
+
+      if (data === 'back_to_products') {
+        const cartText = state?.cart?.length > 0 
+          ? `🛒 *Your Cart* (${state.cart.length} items) - AED ${state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}\n\nSelect another product or checkout:`
+          : 'Select a product to add to your cart:';
+        await sendMessage(chatId, cartText, getProductKeyboard());
+      } else if (data.startsWith('product_')) {
+        const productId = parseInt(data.split('_')[1]);
+        await handleProductSelected(chatId, userId, productId);
+      } else if (data.startsWith('info_')) {
+        const productId = parseInt(data.split('_')[1]);
+        const product = PRODUCTS.find(p => p.id === productId);
+        const infoText = `*${product.emoji} ${product.name}*\n\n${product.description}\n\n✨ *Benefits:* Premium quality, lab-tested, discreet delivery.\n\nReady to add to cart?`;
+        await sendMessage(chatId, infoText, {
+          inline_keyboard: [
+            [{ text: '➕ Add to Cart', callback_data: `add_to_cart_${productId}` }],
+            [{ text: '⬅️ Back', callback_data: 'back_to_products' }]
+          ]
+        });
+      } else if (data.startsWith('add_to_cart_')) {
+        const productId = parseInt(data.split('_')[3]);
+        await handleAddToCart(chatId, userId, productId);
+      } else if (data.startsWith('qty_')) {
+        const parts = data.split('_');
+        const productId = parseInt(parts[1]);
+        const quantity = parts[2];
+        await handleQuantitySelected(chatId, userId, productId, quantity);
+      } else if (data === 'clear_cart') {
+        state.cart = [];
+        await sendMessage(chatId, '🗑️ Cart cleared! Let\'s start fresh.', getProductKeyboard());
+      } else if (data === 'checkout') {
+        await handleCheckout(chatId, userId);
+      } else if (data.startsWith('delivery_')) {
+        const dateOption = data.split('_')[1];
+        await handleDeliveryDate(chatId, userId, dateOption);
+      } else if (data.startsWith('confirm_')) {
+        if (data === 'confirm_yes') {
+          await handleConfirmOrder(chatId, userId);
+        } else {
+          state.cart = [];
+          await sendMessage(chatId, '❌ Order cancelled. Let\'s start over!', getProductKeyboard());
+        }
+      }
+
+      await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, { callback_query_id: queryId });
     }
 
-    res.json({ ok: true });
+    res.sendStatus(200);
   } catch (error) {
-    console.error('Webhook error:', error);
-    res.json({ ok: false, error: error.message });
+    console.error('Webhook error:', error.message);
+    res.sendStatus(500);
   }
 });
 
-app.get('/api/orders', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
+// ==================== HEALTH CHECK ====================
 
-    if (error) throw error;
-    res.json(data);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'VANTA Bot is running' });
 });
 
-app.get('/api/conversations', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('conversations')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (error) throw error;
-    res.json(data);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
+// ==================== EXPORT CSV ====================
 
 app.get('/api/export-csv', async (req, res) => {
   try {
@@ -330,8 +450,8 @@ app.get('/api/export-csv', async (req, res) => {
     if (error) throw error;
 
     const csv = [
-      ['Order ID', 'Customer ID', 'Product', 'Qty', 'Address', 'Status', 'Created'].join(','),
-      ...orders.map(o => [o.id, o.telegram_user_id, o.product_name, o.quantity, `"${o.address}"`, o.status, o.created_at].join(','))
+      ['Order ID', 'Customer ID', 'Products', 'Total Amount', 'Address', 'Delivery Date', 'Status', 'Created'].join(','),
+      ...orders.map(o => [o.id, o.telegram_user_id, `"${o.product_name}"`, o.total_amount, `"${o.address}"`, o.delivery_date, o.status, o.created_at].join(','))
     ].join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
@@ -352,11 +472,9 @@ app.post('/api/send-admin-reply', async (req, res) => {
       return res.status(400).json({ error: 'Missing userId or message' });
     }
 
-    // Send message to Telegram user
     const text = `*Matt:* ${message}`;
     await sendMessage(userId, text);
 
-    // Log to conversations table
     const { error: logError } = await supabase
       .from('conversations')
       .insert({
@@ -380,7 +498,4 @@ app.post('/api/send-admin-reply', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ VANTA Bot running on port ${PORT}`);
-  console.log(`Webhook: POST /telegram`);
 });
-
-export default app;
