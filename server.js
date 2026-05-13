@@ -28,7 +28,7 @@ const PRODUCTS = [
     name: 'Retatrutide Pen 30mg',
     price: 1500,
     emoji: '⭐',
-    description: 'Advanced GLP-1/GCG/CGA receptor agonist. Powerful for fat loss and metabolic optimization.'
+    description: 'Advanced GLP-3/GCG/CGA receptor agonist. Powerful for fat loss and metabolic optimization.'
   },
   {
     id: 2,
@@ -131,22 +131,11 @@ async function handleNameInput(chatId, userId, name) {
   if (!state) return;
 
   state.customerName = name;
-  state.step = 'phone';
-
-  await sendMessage(chatId, `Nice to meet you, *${name}*! 👋\n\n*What's your phone number?* (for delivery coordination)`);
-  await logConversation(chatId, userId, 'NAME_PROVIDED', name);
-}
-
-async function handlePhoneInput(chatId, userId, phone) {
-  const state = userState.get(userId);
-  if (!state) return;
-
-  state.customerPhone = phone;
   state.step = 'shopping';
 
-  const welcomeText = `Perfect! ✅\n\nNow let's find your products. Click a product below to add it to your cart! 🛍️`;
+  const welcomeText = `Nice to meet you, *${name}*! 👋\n\nLet's find your products. Click a product below to add it to your cart! 🛍️`;
   await sendMessage(chatId, welcomeText, getProductKeyboard());
-  await logConversation(chatId, userId, 'PHONE_PROVIDED', phone);
+  await logConversation(chatId, userId, 'NAME_PROVIDED', name);
 }
 
 function getProductKeyboard() {
@@ -292,19 +281,14 @@ async function proceedToConfirmation(chatId, userId) {
 async function handleConfirmOrder(chatId, userId) {
   const state = userState.get(userId);
   state.step = 'address';
-  state.cashConfirmed = true;
 
   await sendMessage(chatId, '📍 *Where should we deliver?*\n\nPlease provide your full delivery address:');
   
   await logConversation(chatId, userId, 'CASH_CONFIRMED', 'Customer confirmed cash ready');
 }
 
-async function handleAddressMessage(chatId, userId, address) {
+async function completeOrder(chatId, userId) {
   const state = userState.get(userId);
-
-  if (!state || state.step !== 'address') return;
-
-  state.address = address;
 
   try {
     const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -316,7 +300,7 @@ async function handleAddressMessage(chatId, userId, address) {
       customer_phone: state.customerPhone,
       product_name: state.cart.map(item => `${item.quantity}x ${item.name}`).join(', '),
       quantity: state.cart.reduce((sum, item) => sum + item.quantity, 0),
-      address: address,
+      address: state.address,
       delivery_date: state.deliveryDate,
       total_amount: subtotal,
       delivery_status: 'pending',
@@ -326,7 +310,7 @@ async function handleAddressMessage(chatId, userId, address) {
     if (error) throw error;
 
     const orderRef = data?.[0]?.id || 'REF-' + Date.now();
-    const successText = `✅ *Order Confirmed!*\n\n🎉 Your order has been placed successfully.\n\n*Order Reference:* \`${orderRef.slice(0, 8).toUpperCase()}\`\n\n👤 Name: ${state.customerName}\n📞 Phone: ${state.customerPhone}\n📦 Delivery to:\n_${address}_\n\n⏰ Delivery: ${state.deliveryDate}\n💰 Amount Due: AED ${subtotal}\n\n❓ Have any questions? Just reply here and our team will get back to you shortly! 💬`;
+    const successText = `✅ *Order Confirmed!*\n\n🎉 Your order has been placed successfully.\n\n*Order Reference:* \`${orderRef.slice(0, 8).toUpperCase()}\`\n\n👤 Name: ${state.customerName}\n📞 Phone: ${state.customerPhone}\n📦 Delivery to:\n_${state.address}_\n\n⏰ Delivery: ${state.deliveryDate}\n💰 Amount Due: AED ${subtotal}\n\n❓ Have any questions? Just reply here and our team will get back to you shortly! 💬`;
 
     await sendMessage(chatId, successText);
     await logConversation(chatId, userId, 'ORDER_PLACED', `Order Ref: ${orderRef.slice(0, 8)}, Amount: AED ${subtotal}`);
@@ -370,10 +354,18 @@ app.post('/telegram', async (req, res) => {
         
         if (state?.step === 'name') {
           await handleNameInput(chatId, userId, text);
-        } else if (state?.step === 'phone') {
-          await handlePhoneInput(chatId, userId, text);
         } else if (state?.step === 'address') {
-          await handleAddressMessage(chatId, userId, text);
+          // Ask for phone after address is provided
+          if (!state.address) {
+            state.address = text;
+            await sendMessage(chatId, `Got it! 📍\n\n*What's your phone number?* (for delivery coordination)`);
+            await logConversation(chatId, userId, 'ADDRESS_PROVIDED', text);
+          } else if (!state.customerPhone) {
+            state.customerPhone = text;
+            await sendMessage(chatId, `Perfect! ✅ Your order is confirmed.\n\nYou'll receive it at:\n${state.address}\n\nOur team will contact you on ${text} for final details.`);
+            await logConversation(chatId, userId, 'PHONE_PROVIDED', text);
+            await completeOrder(chatId, userId);
+          }
         } else {
           // Allow text messages for customer support questions
           await logConversation(chatId, userId, 'CUSTOMER_QUESTION', text);
