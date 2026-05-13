@@ -342,6 +342,39 @@ app.get('/api/export-csv', async (req, res) => {
   }
 });
 
+// ==================== ADMIN REPLY ENDPOINT ====================
+
+app.post('/api/send-admin-reply', async (req, res) => {
+  try {
+    const { userId, message } = req.body;
+
+    if (!userId || !message) {
+      return res.status(400).json({ error: 'Missing userId or message' });
+    }
+
+    // Send message to Telegram user
+    const text = `*Matt:* ${message}`;
+    await sendMessage(userId, text);
+
+    // Log to conversations table
+    const { error: logError } = await supabase
+      .from('conversations')
+      .insert({
+        telegram_user_id: userId,
+        chat_id: userId,
+        event_type: 'ADMIN_REPLY',
+        event_data: message,
+      });
+
+    if (logError) throw logError;
+
+    res.json({ success: true, message: 'Reply sent' });
+  } catch (error) {
+    console.error('Error sending admin reply:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==================== SERVER ====================
 
 const PORT = process.env.PORT || 3000;
