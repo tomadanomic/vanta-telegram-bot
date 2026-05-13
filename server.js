@@ -88,7 +88,7 @@ const PRODUCTS = [
   }
 ];
 
-// User state tracker - now includes cart
+// User state tracker - now includes name, phone, delivery status
 const userState = new Map();
 
 // ==================== TELEGRAM API HELPERS ====================
@@ -110,39 +110,43 @@ async function sendMessage(chatId, text, keyboard = null) {
   }
 }
 
-async function editMessage(chatId, messageId, text, keyboard = null) {
-  try {
-    const payload = {
-      chat_id: chatId,
-      message_id: messageId,
-      text: text,
-      parse_mode: 'Markdown'
-    };
-    if (keyboard) payload.reply_markup = keyboard;
-
-    const response = await axios.post(`${TELEGRAM_API}/editMessageText`, payload);
-    return response.data;
-  } catch (error) {
-    console.error('Error editing message:', error.response?.data || error.message);
-  }
-}
-
 // ==================== BOT FLOW ====================
 
 async function handleStart(chatId, userId, firstName) {
-  // Initialize user state with empty cart
   userState.set(userId, {
-    step: 'shopping',
+    step: 'name',
     cart: [],
     deliveryDate: null,
-    cashConfirmed: false
+    cashConfirmed: false,
+    customerName: null,
+    customerPhone: null
   });
 
   await logConversation(chatId, userId, 'START', '/start');
+  await sendMessage(chatId, `👋 Welcome to *VANTA Peptides*!\n\nI'm here to help you find the perfect products for your goals. 💪\n\n*First, what's your name?*`);
+}
 
-  const welcomeText = `👋 Welcome to *VANTA Peptides*!\n\nI'm here to help you find the perfect products for your goals. Let's start shopping! 💪\n\n_Click a product below to add it to your cart._`;
+async function handleNameInput(chatId, userId, name) {
+  const state = userState.get(userId);
+  if (!state) return;
 
+  state.customerName = name;
+  state.step = 'phone';
+
+  await sendMessage(chatId, `Nice to meet you, *${name}*! 👋\n\n*What's your phone number?* (for delivery coordination)`);
+  await logConversation(chatId, userId, 'NAME_PROVIDED', name);
+}
+
+async function handlePhoneInput(chatId, userId, phone) {
+  const state = userState.get(userId);
+  if (!state) return;
+
+  state.customerPhone = phone;
+  state.step = 'shopping';
+
+  const welcomeText = `Perfect! ✅\n\nNow let's find your products. Click a product below to add it to your cart! 🛍️`;
   await sendMessage(chatId, welcomeText, getProductKeyboard());
+  await logConversation(chatId, userId, 'PHONE_PROVIDED', phone);
 }
 
 function getProductKeyboard() {
@@ -164,7 +168,6 @@ async function handleProductSelected(chatId, userId, productId) {
   const product = PRODUCTS.find(p => p.id === productId);
   if (!product) return;
 
-  const state = userState.get(userId);
   const infoText = `*${product.emoji} ${product.name}*\n\n${product.description}\n\n*Price: AED ${product.price}*\n\nℹ️ Learn more about this product?`;
 
   await sendMessage(chatId, infoText, {
@@ -184,9 +187,6 @@ async function handleAddToCart(chatId, userId, productId) {
   const product = PRODUCTS.find(p => p.id === productId);
   if (!product) return;
 
-  const state = userState.get(userId);
-  
-  // Ask for quantity
   const qtyText = `How many *${product.name}* would you like?`;
   await sendMessage(chatId, qtyText, {
     inline_keyboard: [
@@ -211,7 +211,6 @@ async function handleQuantitySelected(chatId, userId, productId, quantity) {
 
   const state = userState.get(userId);
   
-  // Add to cart
   state.cart.push({
     productId,
     name: product.name,
@@ -251,8 +250,7 @@ async function handleCheckout(chatId, userId) {
     inline_keyboard: [
       [{ text: '⚡ ASAP (Today/Tomorrow)', callback_data: 'delivery_asap' }],
       [{ text: '📅 This Week', callback_data: 'delivery_week' }],
-      [{ text: '🗓️ Next Week', callback_data: 'delivery_next_week' }],
-      [{ text: '📝 Specific Date', callback_data: 'delivery_custom' }]
+      [{ text: '🗓️ Next Week', callback_data: 'delivery_next_week' }]
     ]
   });
 }
@@ -314,18 +312,21 @@ async function handleAddressMessage(chatId, userId, address) {
     const { data, error } = await supabase.from('orders').insert({
       telegram_user_id: userId,
       chat_id: chatId,
+      customer_name: state.customerName,
+      customer_phone: state.customerPhone,
       product_name: state.cart.map(item => `${item.quantity}x ${item.name}`).join(', '),
       quantity: state.cart.reduce((sum, item) => sum + item.quantity, 0),
       address: address,
       delivery_date: state.deliveryDate,
       total_amount: subtotal,
+      delivery_status: 'pending',
       status: 'pending'
     });
 
     if (error) throw error;
 
     const orderRef = data?.[0]?.id || 'REF-' + Date.now();
-    const successText = `✅ *Order Confirmed!*\n\n🎉 Your order has been placed successfully.\n\n*Order Reference:* \`${orderRef.slice(0, 8).toUpperCase()}\`\n\n📦 We'll deliver to:\n_${address}_\n\n⏰ Delivery: ${state.deliveryDate}\n💰 Amount Due: AED ${subtotal}\n\n❓ Have any questions? Just reply here and our team will get back to you shortly! 💬`;
+    const successText = `✅ *Order Confirmed!*\n\n🎉 Your order has been placed successfully.\n\n*Order Reference:* \`${orderRef.slice(0, 8).toUpperCase()}\`\n\n👤 Name: ${state.customerName}\n📞 Phone: ${state.customerPhone}\n📦 Delivery to:\n_${address}_\n\n⏰ Delivery: ${state.deliveryDate}\n💰 Amount Due: AED ${subtotal}\n\n❓ Have any questions? Just reply here and our team will get back to you shortly! 💬`;
 
     await sendMessage(chatId, successText);
     await logConversation(chatId, userId, 'ORDER_PLACED', `Order Ref: ${orderRef.slice(0, 8)}, Amount: AED ${subtotal}`);
@@ -366,7 +367,12 @@ app.post('/telegram', async (req, res) => {
         await sendMessage(chatId, 'I didn\'t understand that command. Type /start to begin! 🚀');
       } else if (text) {
         const state = userState.get(userId);
-        if (state?.step === 'address') {
+        
+        if (state?.step === 'name') {
+          await handleNameInput(chatId, userId, text);
+        } else if (state?.step === 'phone') {
+          await handlePhoneInput(chatId, userId, text);
+        } else if (state?.step === 'address') {
           await handleAddressMessage(chatId, userId, text);
         } else {
           // Allow text messages for customer support questions
@@ -386,7 +392,9 @@ app.post('/telegram', async (req, res) => {
           step: 'shopping',
           cart: [],
           deliveryDate: null,
-          cashConfirmed: false
+          cashConfirmed: false,
+          customerName: null,
+          customerPhone: null
         };
         userState.set(userId, state);
       }
@@ -464,14 +472,13 @@ app.get('/api/export-csv', async (req, res) => {
     const { data: orders, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
     const csv = [
-      ['Order ID', 'Customer ID', 'Products', 'Total Amount', 'Address', 'Delivery Date', 'Status', 'Created'].join(','),
-      ...orders.map(o => [o.id, o.telegram_user_id, `"${o.product_name}"`, o.total_amount, `"${o.address}"`, o.delivery_date, o.status, o.created_at].join(','))
+      ['Order ID', 'Customer Name', 'Phone', 'Products', 'Total', 'Address', 'Delivery Date', 'Status', 'Created'].join(','),
+      ...orders.map(o => [o.id, o.customer_name, o.customer_phone, `"${o.product_name}"`, o.total_amount, `"${o.address}"`, o.delivery_date, o.status, o.created_at].join(','))
     ].join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
