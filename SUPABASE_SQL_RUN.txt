@@ -1,0 +1,110 @@
+════════════════════════════════════════════════════════════════════════════════
+                    RUN THIS SQL IN SUPABASE (Copy & Paste)
+════════════════════════════════════════════════════════════════════════════════
+
+Steps:
+1. Go to: https://app.supabase.com
+2. Select your project (vanta-bot or whatever you named it)
+3. Go to: SQL Editor (left sidebar)
+4. Click: "+ New query"
+5. Copy entire block below and paste into editor
+6. Click: ⚡ Execute button
+7. Wait for success message
+
+════════════════════════════════════════════════════════════════════════════════
+
+COPY & PASTE THIS ENTIRE BLOCK:
+
+-- VANTA Telegram Bot Supabase Schema
+
+-- 1. Create conversations table
+CREATE TABLE conversations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  telegram_user_id BIGINT NOT NULL,
+  chat_id BIGINT NOT NULL,
+  event_type VARCHAR(50) NOT NULL,
+  event_data TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Index for faster queries
+CREATE INDEX conversations_user_id_idx ON conversations(telegram_user_id);
+CREATE INDEX conversations_chat_id_idx ON conversations(chat_id);
+CREATE INDEX conversations_created_at_idx ON conversations(created_at);
+
+-- 2. Create orders table
+CREATE TABLE orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  telegram_user_id BIGINT NOT NULL,
+  chat_id BIGINT NOT NULL,
+  product_name VARCHAR(255) NOT NULL,
+  quantity INTEGER NOT NULL,
+  address TEXT NOT NULL,
+  status VARCHAR(50) DEFAULT 'pending',
+  utm_source JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Indexes for orders
+CREATE INDEX orders_user_id_idx ON orders(telegram_user_id);
+CREATE INDEX orders_chat_id_idx ON orders(chat_id);
+CREATE INDEX orders_status_idx ON orders(status);
+CREATE INDEX orders_created_at_idx ON orders(created_at);
+
+-- 3. Create customers table
+CREATE TABLE customers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  telegram_user_id BIGINT UNIQUE NOT NULL,
+  first_name VARCHAR(255),
+  last_name VARCHAR(255),
+  phone VARCHAR(20),
+  email VARCHAR(255),
+  total_orders INTEGER DEFAULT 0,
+  total_spent DECIMAL(10, 2) DEFAULT 0,
+  first_order_at TIMESTAMP WITH TIME ZONE,
+  last_order_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE INDEX customers_user_id_idx ON customers(telegram_user_id);
+
+-- 4. Disable RLS for development
+ALTER TABLE conversations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
+ALTER TABLE customers DISABLE ROW LEVEL SECURITY;
+
+-- 5. Create Analytics View
+CREATE VIEW order_analytics AS
+SELECT
+  DATE(orders.created_at) as order_date,
+  COUNT(*) as total_orders,
+  SUM(orders.quantity) as total_units,
+  ARRAY_AGG(DISTINCT orders.product_name) as products,
+  COUNT(DISTINCT orders.telegram_user_id) as unique_customers
+FROM orders
+GROUP BY DATE(orders.created_at)
+ORDER BY order_date DESC;
+
+════════════════════════════════════════════════════════════════════════════════
+
+When it's done, you should see:
+✅ All queries executed successfully
+
+Then verify in Supabase:
+1. Go to: Table Editor (left sidebar)
+2. You should see 3 new tables:
+   - conversations
+   - orders
+   - customers
+3. order_analytics view should appear under Views
+
+If you see all three tables → Schema is live! ✅
+
+════════════════════════════════════════════════════════════════════════════════
+
+Once done, reply: "Schema is live in Supabase ✅"
+
+Then we'll start the bot locally.
+
+════════════════════════════════════════════════════════════════════════════════

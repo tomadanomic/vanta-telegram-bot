@@ -1,0 +1,122 @@
+════════════════════════════════════════════════════════════════════════════════
+                  SUPABASE SQL SETUP - STEP BY STEP
+════════════════════════════════════════════════════════════════════════════════
+
+FILE LOCATION:
+/opt/data/vanta-telegram-bot/SUPABASE_SQL_PASTE.txt
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: OPEN YOUR FILE
+───────────────────────
+
+Open this file and copy everything:
+/opt/data/vanta-telegram-bot/SUPABASE_SQL_PASTE.txt
+
+(It's the SQL code to create your 3 tables)
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 2: GO TO SUPABASE DASHBOARD
+─────────────────────────────────
+
+1. Open browser
+2. Go to: https://app.supabase.com
+3. Login with your account
+4. You should see your project: gomuzqrugjkctjkrasql
+5. Click it to open
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 3: OPEN SQL EDITOR
+───────────────────────
+
+Once in your project:
+1. Look at the LEFT SIDEBAR
+2. Find: "SQL Editor" (it's in the menu)
+3. Click it
+4. You'll see SQL query interface
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 4: CREATE NEW QUERY
+────────────────────────
+
+In SQL Editor:
+1. Look for "+ New query" button (top left)
+2. Click it
+3. A blank SQL editor will appear
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 5: PASTE THE SQL
+─────────────────────
+
+1. Copy the entire contents of:
+   /opt/data/vanta-telegram-bot/SUPABASE_SQL_PASTE.txt
+
+2. Paste into the blank SQL editor
+
+3. You should see a big block of SQL starting with:
+   "CREATE TABLE conversations ("
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 6: EXECUTE
+───────────────
+
+1. Look for the blue button with lightning bolt ⚡
+2. OR look for "Execute" button
+3. Click it
+4. Wait 2-3 seconds
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 7: VERIFY SUCCESS
+──────────────────────
+
+You should see at the bottom:
+✅ "Execute completed successfully"
+
+Or you should see the query status turn green.
+
+If you see any errors → tell me exactly what it says.
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 8: VERIFY TABLES WERE CREATED
+───────────────────────────────────
+
+1. In Supabase, go to: "Table Editor" (left sidebar)
+2. You should see 3 new tables:
+   ✓ conversations
+   ✓ orders
+   ✓ customers
+
+If you see all 3 → Schema is live! ✅
+
+════════════════════════════════════════════════════════════════════════════════
+
+DONE? 
+
+Reply: "Schema is live in Supabase ✅"
+
+Then I'll start your bot locally.
+
+════════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING:
+
+Q: "Error: relation 'conversations' already exists"
+A: That's fine! Just means table was created on a previous run. Ignore & proceed.
+
+Q: "I don't see SQL Editor in the sidebar"
+A: Make sure you're logged in to Supabase and selected your project.
+
+Q: "Execute button not working"
+A: Make sure you pasted SQL into the editor (not somewhere else).
+
+Q: "I pasted wrong SQL"
+A: Clear the editor and paste again from SUPABASE_SQL_PASTE.txt
+
+════════════════════════════════════════════════════════════════════════════════

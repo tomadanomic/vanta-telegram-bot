@@ -1,0 +1,265 @@
+════════════════════════════════════════════════════════════════════════════════
+            ✅ VANTA TELEGRAM BOT - PORTAL WITH PASSWORDS & CONVERSATIONS
+════════════════════════════════════════════════════════════════════════════════
+
+PORTAL FEATURES (UPDATED):
+
+✅ Password Protection (Option 1 - Secure)
+   - Login screen before dashboard access
+   - Default password: vanta2025
+   - Same password for both you and Matt
+   - Change anytime via Vercel environment variables
+   - Session stored in browser (localStorage)
+   - Logout button in top right corner
+
+✅ Conversation Logs Tab
+   - See ALL customer interactions with bot
+   - Shows: Customer name + timestamp + what they said + bot's response
+   - Event types tracked: START, PRODUCT_SELECTED, QUANTITY_SELECTED, ADDRESS_CAPTURED, ORDER_CONFIRMED
+   - Real-time updates as customers chat with bot
+   - Scrollable list (20 most recent conversations visible)
+
+✅ Orders Tab (Existing + Improved)
+   - All incoming orders from customers
+   - Shows: Product, quantity, address, status, timestamp
+   - Status management: pending → confirmed → shipped
+   - Action buttons to move orders through pipeline
+   - CSV export button for Matt's fulfillment workflow
+
+✅ Real-Time Dashboard
+   - Stats cards show current counts (total, pending, confirmed)
+   - Both you & Matt see updates simultaneously
+   - Powered by Supabase WebSocket subscriptions
+
+════════════════════════════════════════════════════════════════════════════════
+
+HOW IT WORKS IN PRACTICE:
+
+  Customer Flow:
+    1. Sees TikTok ad (your campaign)
+    2. Clicks link → t.me/vantapeptides_bot
+    3. Opens Telegram bot
+    4. Selects product → quantity → provides address
+    5. Bot saves order to Supabase
+
+  Your & Matt's Portal Flow:
+    1. You both open: https://vanta-portal.vercel.app
+    2. Enter password: vanta2025
+    3. Dashboard loads showing real-time stats
+    4. Orders tab: see incoming orders
+    5. Conversations tab: see what customer said to bot
+    6. Click "Confirm" to mark order ready for fulfillment
+    7. Click "Shipped" to mark order in transit
+    8. Export CSV button → download orders for logistics
+
+════════════════════════════════════════════════════════════════════════════════
+
+FILES UPDATED TODAY:
+
+✅ portal-page.jsx (16 KB)
+   - Password login screen (localStorage-based session)
+   - Authentication state management
+   - Two-tab interface (Orders / Conversations)
+   - Improved conversation display (shows customer + bot dialogue)
+   - Added logout functionality
+   - Better error handling & loading states
+   - Real-time Supabase subscriptions to both tables
+
+✅ SETUP_GUIDE.md
+   - Added portal password login instructions
+   - Local setup (.env.local with NEXT_PUBLIC_PORTAL_PASSWORD)
+   - Production setup (Vercel environment variables)
+   - Testing steps (login flow + tab navigation)
+   - How to change password post-deployment
+
+✅ QUICK_REFERENCE.md
+   - Portal password quick reference card
+   - How to change password after deployment
+   - What's in each dashboard tab
+   - Access workflow for both users
+
+════════════════════════════════════════════════════════════════════════════════
+
+PORTAL LOGIN & ACCESS:
+
+Login Screen (First Visit):
+  URL: https://vanta-portal.vercel.app
+  You'll see: Password input field + "Enter Portal" button
+  Enter password: vanta2025
+  Click "Enter Portal" → dashboard loads
+
+Dashboard (Authenticated):
+  - Header: Stats cards (Total Orders, Pending, Confirmed)
+  - Tabs: Orders | Conversations
+  - Buttons: Export CSV | Refresh | Logout
+  - Content: Data from Supabase, real-time updates
+
+Logout:
+  - Click "Logout" button in top right
+  - Session cleared
+  - Next visit requires password again
+
+Persistent Login (Across Sessions):
+  - Password stored in localStorage (browser memory)
+  - Close tab/browser → next visit still requires password
+  - Different devices → each needs own password entry
+  - Clearing browser data → password forgotten (need to re-enter)
+
+════════════════════════════════════════════════════════════════════════════════
+
+WHAT YOU SEE IN EACH TAB:
+
+📦 Orders Tab:
+   - Product name (e.g., "GHKCU 50mg")
+   - Quantity (e.g., "2x")
+   - Customer address (e.g., "123 Main St, Dubai")
+   - Status badge (yellow=Pending, green=Confirmed, blue=Shipped)
+   - Date & time order was placed
+   - Action button ("Confirm" if pending, "Shipped" if confirmed)
+
+💬 Conversations Tab:
+   - Customer identifier badge (e.g., "PRODUCT_SELECTED")
+   - Customer name & exact timestamp
+   - What customer said: "GHKCU 50mg"
+   - Bot's response: "Great! How many units?"
+   - Event type shows the action (START, QUANTITY_SELECTED, etc.)
+   - Newest conversations at top, scrollable history below
+
+════════════════════════════════════════════════════════════════════════════════
+
+ENVIRONMENT VARIABLES NEEDED:
+
+For Local Development (.env.local):
+  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+  NEXT_PUBLIC_PORTAL_PASSWORD=vanta2025
+
+For Production (Vercel Environment Variables):
+  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+  NEXT_PUBLIC_PORTAL_PASSWORD=vanta2025
+
+Changing Password Post-Deploy:
+  1. Go to Vercel dashboard
+  2. Select vanta-portal project
+  3. Settings → Environment Variables
+  4. Find NEXT_PUBLIC_PORTAL_PASSWORD
+  5. Click Edit → change to new password
+  6. Redeploy project (Vercel will prompt)
+  7. New password active immediately
+
+════════════════════════════════════════════════════════════════════════════════
+
+EXAMPLE CONVERSATION (What You See):
+
+Customer: Ahmed Ahmed (User ID: telegram_123456)
+
+Timeline in Portal:
+─────────────────────────────────────────────
+  EVENT: START | 14:22:15
+  Ahmed just opened the bot
+  Bot Response: "Welcome to VANTA Peptides! 🧬 Pick your product..."
+
+  EVENT: PRODUCT_SELECTED | 14:23:42
+  Ahmed: "GHKCU"
+  Bot Response: "Great choice! 💪 How many units? (1/2/3/5/10)"
+
+  EVENT: QUANTITY_SELECTED | 14:24:08
+  Ahmed: "2"
+  Bot Response: "Perfect! 2x GHKCU 50mg. Send me your delivery address..."
+
+  EVENT: ADDRESS_CAPTURED | 14:25:33
+  Ahmed: "123 Sheikh Zayed Road, Dubai, UAE"
+  Bot Response: "Order confirmed! ✅ You'll receive your GHKCU soon. Payment on delivery."
+
+  EVENT: ORDER_CONFIRMED | 14:25:35
+  Order saved to database
+  Bot Response: "Your order #5234 is ready for fulfillment!"
+─────────────────────────────────────────────
+
+What You See in Portal:
+  ✓ Customer name & exact timestamp
+  ✓ Event type (START → PRODUCT → QTY → ADDRESS → CONFIRMED)
+  ✓ Word-for-word what Ahmed said
+  ✓ Exact bot response
+  ✓ Full conversation flow in order
+
+════════════════════════════════════════════════════════════════════════════════
+
+YOU & MATT'S DAILY WORKFLOW:
+
+Morning (Check Overnight Orders):
+  1. Open browser → https://vanta-portal.vercel.app
+  2. Enter password: vanta2025
+  3. See "Orders" tab
+  4. View pending orders from overnight
+  5. Check "Conversations" tab to see customer questions
+  6. Click "Confirm" on ready-to-ship orders
+  7. Click "Export CSV"
+  8. Send CSV to logistics/Matt for fulfillment
+
+Throughout Day:
+  - Portal stays open on your computer
+  - New orders appear in real-time
+  - Conversations log shows customer interactions
+  - Both you & Matt see updates simultaneously
+  - Click "Confirm" as you process each order
+
+Evening (Summary):
+  1. Export CSV → "vanta-orders-2025-05-13.csv"
+  2. Review "Conversations" for any customer questions/issues
+  3. Check "Total Orders" stat for daily metric
+  4. Click Logout when done
+  5. Next day: open portal again (password same: vanta2025)
+
+════════════════════════════════════════════════════════════════════════════════
+
+SECURITY & NOTES:
+
+✅ Password Stored Locally:
+   - localStorage in browser = persistent (won't log out)
+   - Session tied to device (not cloud)
+   - Different devices = separate logins
+
+✅ Not Suitable For:
+   - Public/shared computers (Logout before leaving)
+   - Security-sensitive operations (password is simple 'vanta2025')
+
+✅ Best Practices:
+   - Change default password before launch
+   - Different password for you & Matt? (Optional — you can use same)
+   - Logout when done (button in top right)
+   - Don't share password via Telegram/unsecured channels
+
+════════════════════════════════════════════════════════════════════════════════
+
+NEXT STEPS:
+
+1. ✅ Portal code updated (portal-page.jsx)
+2. ✅ Documentation updated (SETUP_GUIDE.md + QUICK_REFERENCE.md)
+3. Ready to build: Follow SETUP_GUIDE.md Phase 2 (Next.js setup)
+4. Deploy to Vercel with NEXT_PUBLIC_PORTAL_PASSWORD env var
+5. Give Matt the portal URL + password
+6. Test with sample customer order
+7. Launch! 🚀
+
+════════════════════════════════════════════════════════════════════════════════
+
+PROJECT STATUS:
+
+Backend (Bot):  ✅ Complete (server.js)
+Database:       ✅ Complete (SUPABASE_SCHEMA.sql)
+Frontend:       ✅ Complete + Updated (portal-page.jsx with auth + conversations)
+Docs:           ✅ Complete + Updated (SETUP_GUIDE, QUICK_REFERENCE)
+Deployment:     ✅ Ready (Railway + Vercel configs documented)
+
+Ready to build: YES ✅
+Timeline: 48 hours (Friday → Sunday)
+Go-live: Both you & Matt access same portal with same password
+
+════════════════════════════════════════════════════════════════════════════════
+
+Location: /opt/data/vanta-telegram-bot/
+All files updated. Ready to proceed with SETUP_GUIDE.md Phase 1.
+
+════════════════════════════════════════════════════════════════════════════════

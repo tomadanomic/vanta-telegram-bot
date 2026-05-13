@@ -1,0 +1,104 @@
+════════════════════════════════════════════════════════════════════════════════
+           ✅ BOT IS RUNNING - HERE'S WHAT TO DO NOW
+════════════════════════════════════════════════════════════════════════════════
+
+STATUS: ✅ Bot is running locally on port 3001
+        ✅ Supabase schema is live (conversations, orders, customers tables)
+        ✅ Telegram bot token configured
+        ✅ Supabase API keys configured
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: TEST THE BOT ON TELEGRAM
+─────────────────────────────────
+
+1. Open Telegram (web or mobile)
+2. Search for: @vantapeptides_bot
+3. Click "Start"
+4. You should see:
+   
+   "👋 Welcome to VANTA Peptides!
+    We offer research-grade peptides, independently assayed.
+    Pick a product to order:"
+
+5. Below that, 9 product buttons:
+   ⭐ Retatrutide Pen 30mg (FIRST - hero product)
+   🔋 NAD+ 500mg
+   💪 Tesamorelin 5mg
+   ☀️ Melanotan 2 10mg
+   🧑‍🔬 HCG 5000IU
+   ⚡ MOTSC 5mg
+   🔬 BPC157 5mg
+   🏃 TB500 5mg
+   🧬 GHKCU 50mg
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 2: PLACE A TEST ORDER
+──────────────────────────
+
+1. Tap ⭐ Retatrutide Pen 30mg
+2. Choose quantity (1, 2, 3, 5, or 10)
+3. Enter your address when prompted
+4. Bot should say: "✅ Order confirmed! Matt will contact you soon."
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 3: CHECK THE PORTAL
+────────────────────────
+
+**Portfolio Password:** vanta2025 (or whatever you set)
+**Portal URL:** (we'll deploy to Vercel next)
+
+For now, verify data is in Supabase:
+1. Go to https://app.supabase.com
+2. Select your project: gomuzqrugjkctjkrasql
+3. Go to "Table Editor"
+4. Click "orders" table
+5. You should see your test order with:
+   - product_name: "Retatrutide Pen 30mg"
+   - quantity: (what you selected)
+   - address: (what you entered)
+   - status: "pending"
+   - created_at: (just now)
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 4: VERIFY CONVERSATION LOG
+────────────────────────────────
+
+In Supabase:
+1. Go to "conversations" table
+2. You should see entries for:
+   - START (when you clicked /start)
+   - PRODUCT_SELECTED (which product)
+   - QUANTITY_SELECTED (which qty)
+   - ADDRESS_CAPTURED (address entry)
+   - ORDER_CONFIRMED (final confirmation)
+
+════════════════════════════════════════════════════════════════════════════════
+
+NEXT: WE'LL DEPLOY TO PRODUCTION
+────────────────────────────────
+
+Once you confirm the test order works (Step 1-4 above):
+
+1. RAILWAY (backend) - Deploy bot
+2. VERCEL (frontend) - Deploy portal
+3. GITHUB (code repo) - Set up version control
+
+This is Phase 2 - should take 1-2 hours total.
+
+════════════════════════════════════════════════════════════════════════════════
+
+GO TEST NOW:
+
+1. Open Telegram
+2. Search @vantapeptides_bot
+3. Click Start
+4. Place a test order
+5. Report back: "Test order placed ✅" + screenshot
+
+Then we move to Phase 2 deployment!
+
+════════════════════════════════════════════════════════════════════════════════

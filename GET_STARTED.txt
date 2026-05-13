@@ -1,0 +1,214 @@
+════════════════════════════════════════════════════════════════════════════════
+                    🚀 VANTA TELEGRAM BOT - GET STARTED CHECKLIST
+════════════════════════════════════════════════════════════════════════════════
+
+WHAT I NEED FROM YOU (5 things):
+
+1️⃣  PRODUCT PRICES
+    What Matt charges for each of the 9 peptides (in AED or USD per unit):
+    
+    [ ] GHKCU 50mg                 = ? AED/USD
+    [ ] Tesamorelin 5mg            = ? AED/USD
+    [ ] MOTSC 5mg                  = ? AED/USD
+    [ ] NAD+ 500mg                 = ? AED/USD
+    [ ] HCG 5000IU                 = ? AED/USD
+    [ ] BPC157 5mg                 = ? AED/USD
+    [ ] TB500 5mg                  = ? AED/USD
+    [ ] Melanotan 2 10mg           = ? AED/USD
+    [ ] Retatrutide Pen 30mg       = ? AED/USD
+
+    These go into server.js PRODUCTS array so bot can show prices to customers.
+
+2️⃣  TELEGRAM BOT TOKEN
+    From @BotFather:
+    
+    Steps:
+    - Open Telegram
+    - Search for: @BotFather
+    - Send: /newbot
+    - Follow prompts:
+      * Name: VANTA Peptides Bot
+      * Username: vantapeptides_bot (or your choice, must end with _bot)
+    - Copy the token BotFather gives you
+    - Paste it here: [                                    ]
+    
+    Format: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+
+3️⃣  SUPABASE PROJECT
+    From supabase.com:
+    
+    Steps:
+    - Go to: https://supabase.com
+    - Sign up or login
+    - Click "New Project"
+    - Name: vanta-bot (or your choice)
+    - Select region: Europe (London) or closest to you
+    - Wait ~2 minutes for provisioning
+    - Go to Settings → API
+    - Copy these:
+      * Project URL:  [                                    ]
+      * Anon Key:     [                                    ]
+    
+    Format: URL = https://xxxxx.supabase.co
+    Format: Key = eyJhbGciOiJIUzI1NiIsInR...
+
+4️⃣  GITHUB ACCOUNT (for deployment)
+    - Do you have a GitHub account? [Y/N]
+    - If yes, username: _______________________
+    - If no, we'll create one together
+    
+    (Needed to deploy bot to Railway + portal to Vercel)
+
+5️⃣  PORTAL PASSWORD (optional - can use default)
+    - Keep default: vanta2025? [Y/N]
+    - Or set custom: _______________________
+    
+    (This password protects your portal from random access)
+    (You and Matt both use same password)
+
+════════════════════════════════════════════════════════════════════════════════
+
+WHAT I'LL DO:
+
+Phase 1 (Friday Night - 2-3 hours):
+  ✅ Update server.js with your product prices
+  ✅ Create .env file with your bot token + Supabase credentials
+  ✅ Run SQL schema in your Supabase project
+  ✅ Test bot locally (npm install + npm run dev)
+  ✅ Verify bot responds to /start on Telegram
+  ✅ Test full order flow (product → qty → address → confirmation)
+
+Phase 2 (Saturday - 2-3 hours):
+  ✅ Create Next.js app for portal
+  ✅ Copy portal component (with password + conversations)
+  ✅ Test portal locally on http://localhost:3000
+  ✅ Verify password login works
+  ✅ Test real-time order updates
+
+Phase 3 (Saturday/Sunday - 1-2 hours):
+  ✅ Push code to GitHub
+  ✅ Deploy bot to Railway (live at railway.app)
+  ✅ Deploy portal to Vercel (live at vercel.app)
+  ✅ Configure TikTok ad link with UTM parameters
+  ✅ End-to-end testing (customer → order → portal)
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP-BY-STEP (What Happens Next):
+
+Step 1: You give me the 5 things above
+        ↓
+Step 2: I update server.js + SETUP_GUIDE with your prices & credentials
+        ↓
+Step 3: I give you the updated files + instructions
+        ↓
+Step 4: You follow SETUP_GUIDE.md Phase 1 (bot setup locally)
+        ↓
+Step 5: You test bot on Telegram (should respond to /start)
+        ↓
+Step 6: You follow SETUP_GUIDE.md Phase 2 (portal setup locally)
+        ↓
+Step 7: You test portal locally (login with password, see test orders)
+        ↓
+Step 8: You create GitHub repos (for Railway + Vercel)
+        ↓
+Step 9: You deploy to Railway (bot goes live)
+        ↓
+Step 10: You deploy to Vercel (portal goes live)
+        ↓
+Step 11: You share portal link + password with Matt
+        ↓
+Step 12: Both test together (live bot + live portal)
+        ↓
+Step 13: Create TikTok ads campaign → launch! 🚀
+
+════════════════════════════════════════════════════════════════════════════════
+
+TIMELINE:
+
+Friday Night (Setup):
+  - You give me the 5 things
+  - I update files + send instructions (30 min)
+  - You follow Phase 1 locally (2-3 hours)
+  - Total: 2.5-3.5 hours
+
+Saturday (Deployment):
+  - Follow Phase 2 locally (2-3 hours)
+  - Create GitHub repos + deploy (1-2 hours)
+  - Total: 3-5 hours
+
+Sunday (Testing):
+  - Test with Matt (1 hour)
+  - Launch TikTok ads (ongoing)
+
+Total Time: ~6-9 hours actual work (spread over 48 hours)
+
+════════════════════════════════════════════════════════════════════════════════
+
+WHAT'S ALREADY BUILT (No Work Needed):
+
+✅ Bot code (server.js) - 9.3 KB, production-ready
+✅ Portal code (portal-page.jsx) - 16 KB, password + conversations
+✅ Database schema (SUPABASE_SCHEMA.sql) - Copy-paste ready
+✅ All documentation (SETUP_GUIDE, QUICK_REFERENCE, etc.)
+✅ Deployment configs (Railway + Vercel ready)
+
+You just need:
+- Credentials (bot token, Supabase keys)
+- Product prices
+- GitHub account
+- Follow the step-by-step guide
+
+════════════════════════════════════════════════════════════════════════════════
+
+DO YOU HAVE EVERYTHING?
+
+Before you answer, make sure you:
+
+[ ] Have access to @BotFather on Telegram
+[ ] Can create a Supabase account (free tier is fine)
+[ ] Have (or can create) a GitHub account
+[ ] Know the 9 product prices from Matt
+[ ] Have ~6-9 hours to spend Friday-Sunday
+
+If all yes → You're ready!
+If not → Let me know what's blocking, we can sort it.
+
+════════════════════════════════════════════════════════════════════════════════
+
+NEXT MOVE:
+
+Reply with:
+1. Product prices (copy the 9 items above, fill in prices)
+2. Your GitHub username (or "need to create")
+3. Preferred portal password (or "use default vanta2025")
+4. Any questions/blockers
+
+Once I have that, I'll:
+- Update all files with your prices
+- Create a final checklist for Phase 1
+- You follow SETUP_GUIDE.md and build
+
+════════════════════════════════════════════════════════════════════════════════
+
+Questions Before You Start?
+
+- What's a Supabase account? (Free PostgreSQL database for orders/conversations)
+- What's GitHub for? (Stores code, powers Railway/Vercel deployments)
+- What's Railway? (Runs your bot 24/7 in the cloud)
+- What's Vercel? (Hosts your portal 24/7 in the cloud)
+- Can I use my own server? (Yes, but Railway is simpler for 48h MVP)
+- Do I need to know Node.js? (No, code is written, you just plug in credentials)
+- What if something breaks? (SETUP_GUIDE has troubleshooting, I'm here to help)
+
+════════════════════════════════════════════════════════════════════════════════
+
+Ready? Give me:
+1. Product prices (9 items)
+2. GitHub username
+3. Portal password preference
+4. Any blockers/questions
+
+Then we launch Friday! 🚀
+
+════════════════════════════════════════════════════════════════════════════════

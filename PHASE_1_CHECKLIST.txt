@@ -1,0 +1,211 @@
+════════════════════════════════════════════════════════════════════════════════
+               ✅ PRICES LOADED - YOUR NEXT STEPS (PHASE 1 SETUP)
+════════════════════════════════════════════════════════════════════════════════
+
+PRICES ARE NOW IN THE BOT CODE ✅
+
+All 9 products with actual AED prices:
+
+⭐ Retatrutide Pen 30mg - 1,500 AED (HERO - First in Menu)
+🔋 NAD+ 500mg - 800 AED
+💪 Tesamorelin 5mg - 300 AED
+☀️ Melanotan 2 10mg - 300 AED
+🧑‍🔬 HCG 5000IU - 400 AED
+⚡ MOTSC 5mg - 175 AED
+🔬 BPC157 5mg - 150 AED
+🏃 TB500 5mg - 100 AED
+🧬 GHKCU 50mg - 250 AED
+
+Ready to build? Here's what you do next:
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: CREATE TELEGRAM BOT (5 minutes)
+────────────────────────────────────────
+
+1. Open Telegram
+2. Search for: @BotFather
+3. Send: /newbot
+4. Follow prompts:
+   Name: VANTA Peptides Bot
+   Username: vantapeptides_bot (must end with _bot)
+5. Copy the TOKEN BotFather gives you
+6. Save it: You'll need this in 10 minutes
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 2: CREATE SUPABASE PROJECT (5 minutes)
+────────────────────────────────────────────
+
+1. Go to: https://supabase.com
+2. Sign up (free)
+3. Click "New Project"
+4. Name: vanta-bot
+5. Region: Europe (London) or closest to you
+6. Wait 2-3 minutes for provisioning
+7. When ready, go to: Settings → API
+8. Copy these TWO things:
+   - Project URL (looks like: https://xxxxx.supabase.co)
+   - Anon Key (looks like: eyJhbGciOi...)
+9. Save both
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 3: RUN DATABASE SCHEMA (3 minutes)
+────────────────────────────────────────
+
+1. In Supabase, go to: SQL Editor
+2. Click: "New Query"
+3. Open file: /opt/data/vanta-telegram-bot/SUPABASE_SCHEMA.sql
+4. Copy entire contents
+5. Paste into Supabase SQL editor
+6. Click: ⚡ (Execute button)
+7. Wait for success message
+8. Verify tables created:
+   - conversations ✓
+   - orders ✓
+   - customers ✓
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 4: SETUP BOT LOCALLY (10 minutes)
+────────────────────────────────────────
+
+Navigate to the bot folder:
+```bash
+cd /opt/data/vanta-telegram-bot
+```
+
+Copy .env template:
+```bash
+cp .env.example .env
+```
+
+Edit .env file and fill in:
+```
+TELEGRAM_BOT_TOKEN=your_token_from_BotFather
+SUPABASE_URL=your_url_from_Supabase
+SUPABASE_KEY=your_anon_key_from_Supabase
+```
+
+Install dependencies:
+```bash
+npm install
+```
+
+Start bot locally:
+```bash
+npm run dev
+```
+
+You should see in terminal:
+```
+Server listening on port 3001
+Bot is running...
+```
+
+════════════════════════════════════════════════════════════════════════════════
+
+STEP 5: TEST BOT ON TELEGRAM (5 minutes)
+──────────────────────────────────────────
+
+1. Open Telegram
+2. Search for: @vantapeptides_bot (or your bot username)
+3. Click: Start
+4. You should see:
+   "Welcome to VANTA Peptides!"
+   With 9 buttons (Retatrutide first!)
+5. Test full flow:
+   - Click Retatrutide ⭐
+   - Select quantity (e.g., 1)
+   - Send address (any text, e.g., "Dubai")
+   - See confirmation message
+6. Check Supabase:
+   - Go to Table Editor
+   - Click: conversations table
+   - Should see your interactions logged ✓
+
+If you see all this → PHASE 1 COMPLETE ✅
+
+════════════════════════════════════════════════════════════════════════════════
+
+WHAT'S NEXT (SATURDAY - PHASE 2)
+
+Once Phase 1 works locally, next steps:
+
+Phase 2 (Portal):
+- Create Next.js app
+- Copy portal component
+- Test locally on http://localhost:3000
+- Login with password: vanta2025
+- See your test orders in real-time
+
+Phase 3 (Deployment):
+- Push code to GitHub
+- Deploy bot to Railway (live)
+- Deploy portal to Vercel (live)
+- Share links with Matt
+- Launch TikTok ads
+
+But first → get Phase 1 working!
+
+════════════════════════════════════════════════════════════════════════════════
+
+STILL NEED FROM YOU:
+
+Before Phase 2, let me know:
+
+1. GitHub username (for deployment)
+   Or: "Need to create" → I'll help
+
+2. Portal password preference
+   Or: "Use default vanta2025"
+
+Once you confirm Phase 1 works (bot responding on Telegram), give me those 2 things
+and I'll help with Phase 2 on Saturday.
+
+════════════════════════════════════════════════════════════════════════════════
+
+REFERENCE DOCS:
+
+Quick questions while building?
+- SETUP_GUIDE.md - Step-by-step walkthrough
+- QUICK_REFERENCE.md - Troubleshooting cheat sheet
+- BUILD_SUMMARY.md - What's built & why
+- START_HERE.txt - Project overview
+
+All in: /opt/data/vanta-telegram-bot/
+
+════════════════════════════════════════════════════════════════════════════════
+
+TIMELINE:
+
+Friday Night (NOW):
+  - Do Steps 1-5 above (30 minutes total)
+  - Test bot on Telegram (confirm it works)
+  - Report back: "Phase 1 complete!"
+
+Saturday:
+  - Phase 2 (portal setup) - 2-3 hours
+  - Phase 3 (deployment) - 1-2 hours
+
+Sunday:
+  - Test with Matt
+  - Launch TikTok ads
+
+════════════════════════════════════════════════════════════════════════════════
+
+🚀 Ready to Start?
+
+Follow the 5 steps above (30 min total).
+
+When you hit the "Test bot on Telegram" step and it works, let me know:
+- "Phase 1 complete!" ✅
+- Your GitHub username
+- Portal password preference
+
+Then we do Phase 2 Saturday.
+
+Good luck! 🧬
+
+════════════════════════════════════════════════════════════════════════════════

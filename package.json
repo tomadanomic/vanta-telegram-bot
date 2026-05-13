@@ -1,0 +1,32 @@
+{
+  "name": "vanta-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for VANTA peptides e-commerce with Supabase backend",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "supabase",
+    "ecommerce"
+  ],
+  "author": "Matt Coaching",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.7.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "node-telegram-bot-api": "^0.65.0",
+    "ws": "^8.20.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

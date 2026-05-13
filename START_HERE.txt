@@ -1,0 +1,213 @@
+================================================================================
+                  🧬 VANTA Telegram Bot MVP - START HERE
+================================================================================
+
+LOCATION: /opt/data/vanta-telegram-bot/
+
+PROJECT STATUS: ✅ FULLY SCAFFOLDED & READY TO BUILD
+
+TIMELINE: 48 hours (Friday night → Sunday)
+PLATFORM: Telegram Bot (switched from WhatsApp for speed)
+OWNER: Matt Coaching VANTA
+NOTION: PRJ-7 (Matt Coaching VANTA) - All strategy updated
+
+================================================================================
+
+📖 READ THESE IN ORDER:
+
+1️⃣  BUILD_SUMMARY.md (5 min)
+    → Understand what's built, why, and next steps
+    
+2️⃣  README.md (5 min)
+    → Quick overview and key features
+    
+3️⃣  SETUP_GUIDE.md (20 min)
+    → Detailed step-by-step (Phase 1 bot + Phase 2 portal)
+    
+4️⃣  LAUNCH_CHECKLIST.md (scan)
+    → 48-hour timeline with hourly milestones
+    
+5️⃣  QUICK_REFERENCE.md (bookmark)
+    → Deployment cheat sheet & troubleshooting
+
+================================================================================
+
+🚀 QUICK START (5 MINUTES):
+
+Step 1: Get credentials
+  - Telegram bot token: @BotFather → /newbot → copy token
+  - Supabase: supabase.com → new project → copy URL + key
+
+Step 2: Setup
+  cp .env.example .env
+  # Edit .env with tokens
+
+Step 3: Install & test
+  npm install
+  npm run dev
+  
+Step 4: Test on Telegram
+  Find your bot (@vantapeptides_bot) → /start → try ordering
+
+================================================================================
+
+📁 FILES IN THIS FOLDER:
+
+Code:
+  server.js           - Bot + Express API (main logic)
+  portal-page.jsx     - Next.js dashboard (React component)
+  package.json        - Dependencies
+
+Database:
+  SUPABASE_SCHEMA.sql - Copy-paste into Supabase SQL editor
+
+Config:
+  .env.example        - Template (rename to .env)
+
+Documentation:
+  README.md           - Overview
+  SETUP_GUIDE.md      - Step-by-step implementation
+  LAUNCH_CHECKLIST.md - 48-hour timeline
+  QUICK_REFERENCE.md  - Deployment cheat sheet
+  BUILD_SUMMARY.md    - What's built & why
+  START_HERE.txt      - This file
+
+================================================================================
+
+🎯 WHAT'S BUILT:
+
+✅ Telegram bot with product menu (9 peptides)
+✅ Order flow: product → quantity → address → CoD confirmation
+✅ Supabase backend (real-time conversations, orders, customers)
+✅ Next.js portal dashboard (real-time order tracking + CSV export)
+✅ UTM tracking for TikTok ads
+✅ Express API endpoints (/health, /api/orders, /api/export-csv)
+✅ Full deployment setup (Railway for bot, Vercel for portal)
+
+================================================================================
+
+📋 WHAT YOU NEED FROM MATT:
+
+Before launching:
+  [ ] Product prices (AED or USD per unit)
+  [ ] Telegram contact for support
+  [ ] TikTok ad account access
+  [ ] Shipping/delivery information
+
+================================================================================
+
+⏱️ ESTIMATED TIMELINE:
+
+Phase 1 (Bot) - Friday Night to Saturday (24 hours):
+  Hour 1-2:   Telegram + Supabase setup
+  Hour 3-6:   Database schema
+  Hour 7-12:  Bot development & testing
+  Hour 13-18: Local testing
+  Hour 19-24: Deploy to Railway
+
+Phase 2 (Portal) - Saturday to Sunday (24 hours):
+  Hour 25-28: Create Next.js app + integrate Supabase
+  Hour 29-32: Add portal features
+  Hour 33-36: Deploy to Vercel
+  Hour 37-40: TikTok integration
+  Hour 41-48: Final testing + launch
+
+================================================================================
+
+🔗 DEPLOYMENT TARGETS:
+
+Backend (Bot):    Railway       (Node.js)
+Frontend (Portal): Vercel       (Next.js)
+Database:         Supabase      (PostgreSQL)
+Ads:              TikTok Ads Manager
+
+================================================================================
+
+💡 KEY FEATURES:
+
+🤖 Telegram Bot:
+  - Inline buttons for product selection
+  - State management (menu → product → qty → address)
+  - Real-time order logging
+  - CoD confirmation flow
+
+📊 Portal Dashboard:
+  - Real-time order tracking
+  - Stats cards (total, pending, confirmed)
+  - Order table with status updates
+  - CSV export button
+  - Conversation logs
+
+📈 Analytics:
+  - UTM parameter tracking (TikTok source)
+  - Conversation event logging
+  - Order status pipeline
+  - Customer tracking
+
+================================================================================
+
+🎓 WHAT YOU'LL LEARN:
+
+1. Telegram Bot Architecture (buttons, state, polling)
+2. Real-time Database Design (Supabase subscriptions)
+3. E-Commerce Funnel (menu → checkout → fulfillment)
+4. UTM & Attribution (TikTok ads → conversions)
+5. Full-Stack Deployment (Railway + Vercel)
+
+Reusable skills for: Sandsford Law, other side projects, WhatsApp bots
+
+================================================================================
+
+🆘 HELP:
+
+Questions while building?
+  1. Check SETUP_GUIDE.md (step-by-step)
+  2. Check QUICK_REFERENCE.md (troubleshooting)
+  3. Check Notion PRJ-7 (context & decisions)
+  4. Review server.js / portal-page.jsx (code)
+
+Stuck on something?
+  - Bot not responding? → Check Railway logs + .env
+  - Portal not updating? → Check Supabase real-time + browser console
+  - Orders not saving? → Check Supabase tables exist
+  - Deployment failed? → Check env vars on Railway/Vercel
+
+================================================================================
+
+✅ PRE-LAUNCH CHECKLIST:
+
+[ ] Read this file
+[ ] Read BUILD_SUMMARY.md
+[ ] Read SETUP_GUIDE.md (at least Phase 1)
+[ ] Get credentials from Matt (prices, etc.)
+[ ] Follow SETUP_GUIDE.md Phase 1 (bot setup)
+[ ] Test locally with npm run dev
+[ ] Follow SETUP_GUIDE.md Phase 2 (portal)
+[ ] Deploy to Railway + Vercel
+[ ] Test TikTok → Telegram link
+[ ] Export CSV from portal
+[ ] Get Matt's approval
+[ ] Launch! 🚀
+
+================================================================================
+
+📞 CONTACT:
+
+Project: Matt Coaching VANTA (PRJ-7)
+Notion: Updated with full Telegram strategy
+GitHub: (to be created during build)
+Live URLs: (after deployment)
+
+================================================================================
+
+🎬 NEXT STEP:
+
+→ Open and read: BUILD_SUMMARY.md
+
+Then follow: SETUP_GUIDE.md
+
+Timeline: Start Friday night, go live Sunday
+
+Good luck! 🚀
+
+================================================================================
