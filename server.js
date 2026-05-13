@@ -61,23 +61,25 @@ async function handleCallbackQuery(callbackQuery) {
   const data = callbackQuery.data;
   const messageId = callbackQuery.message.message_id;
 
-  if (data.startsWith('product_')) {
-    const productId = parseInt(data.split('_')[1]);
-    const product = PRODUCTS.find((p) => p.id === productId);
+  try {
+    if (data.startsWith('product_')) {
+      const productId = parseInt(data.split('_')[1]);
+      const product = PRODUCTS.find((p) => p.id === productId);
 
-    if (!product) return;
+      if (!product) {
+        await bot.answerCallbackQuery(callbackQuery.id, { text: 'Product not found', show_alert: true });
+        return;
+      }
 
-    userState.set(userId, { 
-      step: 'quantity', 
-      selectedProduct: product,
-      products: []
-    });
+      userState.set(userId, { 
+        step: 'quantity', 
+        selectedProduct: product,
+        products: []
+      });
 
-    const text = `${product.emoji} *${product.name}*\n\nHow many units would you like?`;
+      const text = `${product.emoji} *${product.name}*\n\nHow many units would you like?`;
 
-    const options = {
-      parse_mode: 'Markdown',
-      reply_markup: {
+      const keyboard = {
         inline_keyboard: [
           [{ text: '1', callback_data: `qty_1_${productId}` }],
           [{ text: '2', callback_data: `qty_2_${productId}` }],
@@ -86,55 +88,72 @@ async function handleCallbackQuery(callbackQuery) {
           [{ text: '10', callback_data: `qty_10_${productId}` }],
           [{ text: '🔙 Back to Menu', callback_data: 'menu' }]
         ]
+      };
+
+      await bot.editMessageText(text, { 
+        chat_id: chatId, 
+        message_id: messageId,
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+
+      await logConversation(chatId, userId, 'PRODUCT_SELECTED', product.name);
+      await bot.answerCallbackQuery(callbackQuery.id);
+      
+    } else if (data.startsWith('qty_')) {
+      const parts = data.split('_');
+      const qty = parseInt(parts[1]);
+      const productId = parseInt(parts[2]);
+      const product = PRODUCTS.find((p) => p.id === productId);
+
+      const state = userState.get(userId);
+      if (state) {
+        state.step = 'address';
+        state.quantity = qty;
       }
-    };
 
-    bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
-    await logConversation(chatId, userId, 'PRODUCT_SELECTED', product.name);
-    
-  } else if (data.startsWith('qty_')) {
-    const parts = data.split('_');
-    const qty = parseInt(parts[1]);
-    const productId = parseInt(parts[2]);
-    const product = PRODUCTS.find((p) => p.id === productId);
+      const text = `✅ Selected: *${qty}x ${product.emoji} ${product.name}*\n\nNow, please share your delivery address:`;
 
-    const state = userState.get(userId);
-    state.step = 'address';
-    state.quantity = qty;
+      await bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: 'Markdown'
+      });
 
-    const text = `✅ Selected: *${qty}x ${product.emoji} ${product.name}*\n\nNow, please share your delivery address:`;
+      await logConversation(chatId, userId, 'QUANTITY_SELECTED', `${qty}x ${product.name}`);
+      await bot.answerCallbackQuery(callbackQuery.id);
+      
+    } else if (data === 'menu') {
+      userState.set(userId, { step: 'menu', products: [] });
 
-    bot.editMessageText(text, {
-      chat_id: chatId,
-      message_id: messageId,
-      parse_mode: 'Markdown'
-    });
+      const welcomeText = `👋 Back to menu.\n\nPick a product:`;
 
-    await logConversation(chatId, userId, 'QUANTITY_SELECTED', `${qty}x ${product.name}`);
-    
-  } else if (data === 'menu') {
-    userState.set(userId, { step: 'menu', products: [] });
-
-    const welcomeText = `👋 Back to menu.\n\nPick a product:`;
-
-    const options = {
-      reply_markup: {
+      const keyboard = {
         inline_keyboard: PRODUCTS.map((p) => [
           { text: `${p.emoji} ${p.name}`, callback_data: `product_${p.id}` }
         ])
-      }
-    };
+      };
 
-    bot.editMessageText(welcomeText, { chat_id: chatId, message_id: messageId, ...options });
-    await logConversation(chatId, userId, 'RETURNED_TO_MENU', 'Menu');
-    
-  } else if (data.startsWith('confirm_')) {
-    const orderId = data.split('_')[1];
-    await logConversation(chatId, userId, 'ORDER_CONFIRMED', orderId);
-    bot.sendMessage(chatId, `✅ *Order confirmed!* Reference: \`${orderId}\`\n\n💰 Cash on Delivery.\nMatt will contact you shortly to confirm delivery.\n\nThank you for choosing VANTA! 🧬`, { parse_mode: 'Markdown' });
+      await bot.editMessageText(welcomeText, { 
+        chat_id: chatId, 
+        message_id: messageId,
+        reply_markup: keyboard
+      });
+
+      await logConversation(chatId, userId, 'RETURNED_TO_MENU', 'Menu');
+      await bot.answerCallbackQuery(callbackQuery.id);
+      
+    } else if (data.startsWith('confirm_')) {
+      const orderId = data.split('_')[1];
+      await logConversation(chatId, userId, 'ORDER_CONFIRMED', orderId);
+      
+      await bot.sendMessage(chatId, `✅ *Order confirmed!* Reference: \`${orderId}\`\n\n💰 Cash on Delivery.\nMatt will contact you shortly to confirm delivery.\n\nThank you for choosing VANTA! 🧬`, { parse_mode: 'Markdown' });
+      await bot.answerCallbackQuery(callbackQuery.id);
+    }
+  } catch (error) {
+    console.error('Callback error:', error);
+    await bot.answerCallbackQuery(callbackQuery.id, { text: 'Error processing request', show_alert: true });
   }
-
-  bot.answerCallbackQuery(callbackQuery.id);
 }
 
 async function handleMessage(msg) {
@@ -165,8 +184,8 @@ async function handleMessage(msg) {
     .select();
 
   if (error) {
-    console.error('Supabase error:', error);
-    bot.sendMessage(chatId, '❌ Error saving order. Please try again.');
+    console.error('Supabase error:', JSON.stringify(error));
+    await bot.sendMessage(chatId, `❌ Error saving order: ${error.message || 'Unknown error'}. Please try again.`);
     return;
   }
 
