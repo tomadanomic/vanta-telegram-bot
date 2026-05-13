@@ -9,7 +9,7 @@ dotenv.config();
 // Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL.trim(),
-  process.env.SUPABASE_KEY.trim()
+  process.env.SUPABASE_KEY.replace(/\s/g, '')
 );
 
 // Initialize Express
