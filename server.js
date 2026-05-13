@@ -2,19 +2,17 @@ import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
-import ws from 'ws';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Initialize Telegram Bot
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+// Initialize Telegram Bot (webhook mode for Vercel)
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 
-// Initialize Supabase with WebSocket support
+// Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY,
-  { realtime: { transport: ws } }
+  process.env.SUPABASE_KEY
 );
 
 // Initialize Express
@@ -38,17 +36,10 @@ const PRODUCTS = [
 // User state tracker (in-memory; replace with Supabase for production)
 const userState = new Map();
 
-// ==================== BOT COMMANDS ====================
+// ==================== BOT COMMAND HANDLERS ====================
 
-bot.onText(/\/start/, async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  const firstName = msg.from.first_name || 'there';
-
-  // Initialize user state
+async function handleStart(chatId, userId, firstName) {
   userState.set(userId, { step: 'menu', products: [] });
-
-  // Log conversation start
   await logConversation(chatId, userId, 'START', `/start`);
 
   const welcomeText = `👋 Welcome to VANTA Peptides!\n\nWe offer research-grade peptides, independently assayed.\n\nPick a product to order:`;
@@ -62,13 +53,13 @@ bot.onText(/\/start/, async (msg) => {
   };
 
   bot.sendMessage(chatId, welcomeText, options);
-});
+}
 
-// Handle product selection
-bot.on('callback_query', async (callbackQuery) => {
+async function handleCallbackQuery(callbackQuery) {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
   const data = callbackQuery.data;
+  const messageId = callbackQuery.message.message_id;
 
   if (data.startsWith('product_')) {
     const productId = parseInt(data.split('_')[1]);
@@ -76,7 +67,6 @@ bot.on('callback_query', async (callbackQuery) => {
 
     if (!product) return;
 
-    // Update user state
     userState.set(userId, { 
       step: 'quantity', 
       selectedProduct: product,
@@ -99,16 +89,15 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     };
 
-    bot.editMessageText(text, { chat_id: chatId, message_id: callbackQuery.message.message_id, ...options });
-
+    bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
     await logConversation(chatId, userId, 'PRODUCT_SELECTED', product.name);
+    
   } else if (data.startsWith('qty_')) {
     const parts = data.split('_');
     const qty = parseInt(parts[1]);
     const productId = parseInt(parts[2]);
     const product = PRODUCTS.find((p) => p.id === productId);
 
-    // Update user state
     const state = userState.get(userId);
     state.step = 'address';
     state.quantity = qty;
@@ -117,11 +106,12 @@ bot.on('callback_query', async (callbackQuery) => {
 
     bot.editMessageText(text, {
       chat_id: chatId,
-      message_id: callbackQuery.message.message_id,
+      message_id: messageId,
       parse_mode: 'Markdown'
     });
 
     await logConversation(chatId, userId, 'QUANTITY_SELECTED', `${qty}x ${product.name}`);
+    
   } else if (data === 'menu') {
     userState.set(userId, { step: 'menu', products: [] });
 
@@ -135,19 +125,20 @@ bot.on('callback_query', async (callbackQuery) => {
       }
     };
 
-    bot.editMessageText(welcomeText, { chat_id: chatId, message_id: callbackQuery.message.message_id, ...options });
-
+    bot.editMessageText(welcomeText, { chat_id: chatId, message_id: messageId, ...options });
     await logConversation(chatId, userId, 'RETURNED_TO_MENU', 'Menu');
+    
   } else if (data.startsWith('confirm_')) {
     const orderId = data.split('_')[1];
     await logConversation(chatId, userId, 'ORDER_CONFIRMED', orderId);
     bot.sendMessage(chatId, `✅ *Order confirmed!* Reference: \`${orderId}\`\n\n💰 Cash on Delivery.\nMatt will contact you shortly to confirm delivery.\n\nThank you for choosing VANTA! 🧬`, { parse_mode: 'Markdown' });
   }
-});
 
-// Handle text messages (address input)
-bot.on('message', async (msg) => {
-  if (msg.text && msg.text.startsWith('/')) return; // Skip command messages
+  bot.answerCallbackQuery(callbackQuery.id);
+}
+
+async function handleMessage(msg) {
+  if (!msg.text || msg.text.startsWith('/')) return;
 
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -156,29 +147,19 @@ bot.on('message', async (msg) => {
   const state = userState.get(userId);
   if (!state || state.step !== 'address') return;
 
-  // Capture address
-  const order = {
-    chatId,
-    userId,
-    product: state.selectedProduct,
-    quantity: state.quantity,
-    address: text,
-    timestamp: new Date().toISOString()
-  };
-
-  // Save to Supabase
+  // Save order to Supabase
   const { data, error } = await supabase
     .from('orders')
     .insert([
       {
         telegram_user_id: userId,
         chat_id: chatId,
-        product_name: order.product.name,
-        quantity: order.quantity,
-        address: order.address,
+        product_name: state.selectedProduct.name,
+        quantity: state.quantity,
+        address: text,
         status: 'pending',
-        utm_source: msg.text.includes('utm_') ? extractUTM(msg.text) : null,
-        created_at: order.timestamp
+        utm_source: text.includes('utm_') ? extractUTM(text) : null,
+        created_at: new Date().toISOString()
       }
     ])
     .select();
@@ -193,9 +174,9 @@ bot.on('message', async (msg) => {
   
   const confirmText = `
 📦 *Order Summary*
-├─ Product: ${order.product.emoji} ${order.product.name}
-├─ Quantity: ${order.quantity}x
-├─ Address: \`${order.address}\`
+├─ Product: ${state.selectedProduct.emoji} ${state.selectedProduct.name}
+├─ Quantity: ${state.quantity}x
+├─ Address: \`${text}\`
 └─ Payment: 💰 Cash on Delivery
 
 Confirm this order?
@@ -212,10 +193,9 @@ Confirm this order?
   };
 
   bot.sendMessage(chatId, confirmText, options);
-
   await logConversation(chatId, userId, 'ADDRESS_CAPTURED', text);
   userState.set(userId, { step: 'confirm', orderId });
-});
+}
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -246,6 +226,32 @@ function extractUTM(text) {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Webhook endpoint for Telegram
+app.post('/telegram', async (req, res) => {
+  try {
+    const msg = req.body;
+
+    if (msg.message) {
+      const { message } = msg;
+      
+      if (message.text === '/start') {
+        await handleStart(message.chat.id, message.from.id, message.from.first_name);
+      } else {
+        await handleMessage(message);
+      }
+    }
+
+    if (msg.callback_query) {
+      await handleCallbackQuery(msg.callback_query);
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Telegram webhook error:', error);
+    res.sendStatus(500);
+  }
 });
 
 app.get('/api/orders', async (req, res) => {
@@ -287,7 +293,6 @@ app.get('/api/export-csv', async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
-  // Simple CSV export
   const csv = [
     ['Order ID', 'Customer ID', 'Product', 'Qty', 'Address', 'Status', 'Created', 'UTM Source'].join(','),
     ...orders.map(o => [
@@ -309,15 +314,12 @@ app.get('/api/export-csv', async (req, res) => {
 
 // ==================== SERVER ====================
 
-const PORT = process.env.PORT || 8888;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ VANTA Telegram Bot running on port ${PORT}`);
+  console.log(`Webhook: /telegram`);
   console.log(`Bot token: ${process.env.TELEGRAM_BOT_TOKEN ? '✓' : '✗'}`);
   console.log(`Supabase: ${process.env.SUPABASE_URL ? '✓' : '✗'}`);
 });
 
-process.on('SIGINT', () => {
-  console.log('Shutting down gracefully...');
-  bot.stopPolling();
-  process.exit(0);
-});
+export default app;
