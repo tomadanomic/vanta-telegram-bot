@@ -8,8 +8,8 @@ dotenv.config();
 
 // Initialize Supabase
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
+  process.env.SUPABASE_URL.trim(),
+  process.env.SUPABASE_KEY.trim()
 );
 
 // Initialize Express
