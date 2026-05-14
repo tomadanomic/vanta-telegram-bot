@@ -1,0 +1,33 @@
+════════════════════════════════════════════════════════════════════════════════
+                    REDEPLOY ON VERCEL - NEXT STEPS
+════════════════════════════════════════════════════════════════════════════════
+
+CODE UPDATED: ✅
+  - Converted to webhook mode (required for Vercel)
+  - Pushed to GitHub
+  - Ready to redeploy
+
+YOUR NEXT STEPS:
+
+1. Go to https://vercel.com/dashboard
+2. Click your project: vanta-telegram-bot
+3. Click "Deployments" tab
+4. Look for your latest deployment
+5. Click the three-dot menu (⋯)
+6. Select "Redeploy"
+7. Click "Redeploy" in the dialog
+
+Wait for it to say "Ready" (should take ~2 minutes)
+
+════════════════════════════════════════════════════════════════════════════════
+
+ONCE REDEPLOYED, TELL ME:
+
+"Vercel redeployed ✅"
+
+Then I'll:
+1. Set up the Telegram webhook
+2. Test the bot
+3. Bot goes live on Telegram!
+
+════════════════════════════════════════════════════════════════════════════════

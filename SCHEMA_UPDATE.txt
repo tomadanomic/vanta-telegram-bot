@@ -1,0 +1,16 @@
+SUPABASE SCHEMA UPDATE REQUIRED
+================================
+
+You need to add 2 new columns to the 'orders' table:
+
+1. Go to https://app.supabase.co
+2. Click gomuzqrugjkctjkrasql project
+3. Click SQL Editor (left sidebar)
+4. Run this query:
+
+ALTER TABLE orders ADD COLUMN delivery_date TEXT;
+ALTER TABLE orders ADD COLUMN total_amount INTEGER;
+
+Then save and run!
+
+After that, the bot will work with the new fields.
