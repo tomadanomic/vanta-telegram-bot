@@ -138,9 +138,12 @@ Matt exports CSV & fulfills
 |------|---------|
 | `SETUP_GUIDE.md` | Complete setup instructions |
 | `LAUNCH_CHECKLIST.md` | 48-hour timeline |
+| `TIKTOK_INTEGRATION_GUIDE.md` | TikTok Conversions API setup & troubleshooting |
+| `IMPLEMENTATION_SUMMARY.md` | TikTok integration technical summary |
 | `SUPABASE_SCHEMA.sql` | Database schema (run in Supabase) |
 | `server.js` | Bot + API backend |
 | `portal-page.jsx` | React dashboard component |
+| `tiktok-conversions.js` | TikTok API client module |
 
 ---
 
@@ -151,6 +154,7 @@ Matt exports CSV & fulfills
 ✅ **CSV Export** - One-click export for Matt's fulfillment
 ✅ **UTM Tracking** - Know which TikTok ad drove each sale
 ✅ **Conversation Logs** - Debug & improve funnel
+✅ **TikTok Conversions API** - ROAS tracking & campaign optimization
 ✅ **Deployed** - Not localhost; truly live
 
 ---

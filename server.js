@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { trackPurchase, trackAddToCart, trackInitiateCheckout } from './tiktok-conversions.js';
 
 dotenv.config();
 
@@ -314,6 +315,22 @@ async function completeOrder(chatId, userId) {
 
     await sendMessage(chatId, successText);
     await logConversation(chatId, userId, 'ORDER_PLACED', `Order Ref: ${orderRef.slice(0, 8)}, Amount: AED ${subtotal}`);
+
+    // Send TikTok Conversions API event for attribution tracking
+    trackPurchase({
+      order_id: orderRef,
+      customer_name: state.customerName,
+      customer_email: null, // Can be added if collected in future
+      customer_phone: state.customerPhone,
+      total_amount: subtotal,
+      currency: 'AED',
+      items: state.cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }))
+    }).catch(err => console.warn('TikTok conversion tracking error:', err.message));
 
     state.step = 'completed';
     state.cart = [];
